@@ -29,7 +29,7 @@ public static class DeleteGame
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapDelete("api/games/{id}", async (ISender sender, int id, CancellationToken cancellationToken) =>
+            app.MapDelete("api/games/{id:int}", async (ISender sender, int id, CancellationToken cancellationToken) =>
                 await sender.Send(new Command(id), cancellationToken) ? Results.NoContent()
                     : Results.NotFound($"Video game with id {id} not found."));
         }

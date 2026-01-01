@@ -33,10 +33,10 @@ public static class UpdateGame
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPut("api/games/{id}", async (ISender sender, Command command, int id, CancellationToken cancellationToken) =>
+            app.MapPut("api/games/{id:int}", async (ISender sender, Command command, int id, CancellationToken cancellationToken) =>
             {
                 var updatedGame = await sender.Send(command with { Id = id }, cancellationToken);
-                return updatedGame is not null ? Results.Ok(updatedGame) 
+                return updatedGame is not null ? Results.Ok(updatedGame)
                     : Results.NotFound($"Video game with id {id} not found.");
             });
         }
