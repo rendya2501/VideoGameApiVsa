@@ -1,0 +1,46 @@
+﻿using MediatR;
+using VideoGameApiVsa.Data;
+
+namespace VideoGameApiVsa.Features.VideoGames;
+
+public static class GetGameById
+{
+    public record Query(int Id) : IRequest<Response?>;
+
+    public record Response(int Id, string Title, string Genre, int ReleaseYear);
+
+    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Query, Response?>
+    {
+        public async Task<Response?> Handle(Query query, CancellationToken cancellationToken)
+        {
+            var videoGame = await dbContext.VideoGames.FindAsync([query.Id], cancellationToken);
+            if (videoGame is null)
+            {
+                return null;
+            }
+
+            return new Response(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
+        }
+    }
+
+    // 案3
+    public static async Task<IResult> Endpoint(ISender sender, int id, CancellationToken ct)
+    {
+        var result = await sender.Send(new Query(id), ct);
+        return result is not null
+            ? Results.Ok(result)
+            : Results.NotFound($"Video game with id {id} not found.");
+    }
+
+    // 案4
+    public static void GetGameByIdEndpoint(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/{id:int}", async (ISender sender, int id, CancellationToken ct) =>
+        {
+            var result = await sender.Send(new Query(id), ct);
+            return result is not null
+                ? Results.Ok(result)
+                : Results.NotFound($"Video game with id {id} not found.");
+        }).WithName("GetGameById");
+    }
+}
