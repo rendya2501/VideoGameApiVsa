@@ -11,9 +11,9 @@ public static class GetGameById
 
     public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Query, Response?>
     {
-        public async Task<Response?> Handle(Query query, CancellationToken cancellationToken)
+        public async Task<Response?> Handle(Query query, CancellationToken ct)
         {
-            var videoGame = await dbContext.VideoGames.FindAsync([query.Id], cancellationToken);
+            var videoGame = await dbContext.VideoGames.FindAsync([query.Id], ct);
             if (videoGame is null)
             {
                 return null;
@@ -33,7 +33,7 @@ public static class GetGameById
     }
 
     // 案4
-    public static void GetGameByIdEndpoint(this IEndpointRouteBuilder app)
+    internal static void GetGameByIdEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapGet("/{id:int}", async (ISender sender, int id, CancellationToken ct) =>
         {

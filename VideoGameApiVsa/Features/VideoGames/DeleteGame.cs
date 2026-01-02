@@ -1,5 +1,4 @@
-﻿using Carter;
-using MediatR;
+﻿using MediatR;
 using VideoGameApiVsa.Data;
 
 namespace VideoGameApiVsa.Features.VideoGames;
@@ -10,32 +9,52 @@ public static class DeleteGame
 
     public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Command, bool>
     {
-        public async Task<bool> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(Command command, CancellationToken ct)
         {
-            var videoGame = await dbContext.VideoGames.FindAsync([request.Id], cancellationToken);
+            var videoGame = await dbContext.VideoGames.FindAsync([command.Id], ct);
             if (videoGame is null)
             {
                 return false;
             }
 
             dbContext.VideoGames.Remove(videoGame);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(ct);
 
             return true;
         }
     }
 
-    public class EndPoint : ICarterModule
+    // 案3
+    public static async Task<IResult> Endpoint(ISender sender, int id, CancellationToken ct)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapDelete("api/games/{id:int}", async (ISender sender, int id, CancellationToken cancellationToken) =>
-                await sender.Send(new Command(id), cancellationToken) ? Results.NoContent()
-                    : Results.NotFound($"Video game with id {id} not found."));
-        }
+        var deleted = await sender.Send(new Command(id), ct);
+        return deleted
+            ? Results.NoContent()
+            : Results.NotFound($"Video game with id {id} not found.");
     }
+
+    // 案4
+    internal static void DeleteGameEndpoint(this IEndpointRouteBuilder app)
+    {
+        app.MapDelete("/{id:int}", async (ISender sender, int id, CancellationToken ct) =>
+            await sender.Send(new Command(id), ct) 
+                ? Results.NoContent()
+                : Results.NotFound($"Video game with id {id} not found."));
+    }
+
+    //// 案2
+    //public class EndPoint : ICarterModule
+    //{
+    //    public void AddRoutes(IEndpointRouteBuilder app)
+    //    {
+    //        app.MapDelete("api/games/{id:int}", async (ISender sender, int id, CancellationToken ct) =>
+    //            await sender.Send(new Command(id), ct) ? Results.NoContent()
+    //                : Results.NotFound($"Video game with id {id} not found."));
+    //    }
+    //}
 }
 
+// 案1
 //[ApiController]
 //[Route("api/games")]
 //public class DeleteGameController(ISender sender) : ControllerBase

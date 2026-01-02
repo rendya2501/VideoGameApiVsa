@@ -1,5 +1,4 @@
-﻿using Carter;
-using MediatR;
+﻿using MediatR;
 using VideoGameApiVsa.Data;
 
 namespace VideoGameApiVsa.Features.VideoGames;
@@ -12,37 +11,60 @@ public static class UpdateGame
 
     public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Command, Response?>
     {
-        public async Task<Response?> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Response?> Handle(Command command, CancellationToken ct)
         {
-            var videoGame = await dbContext.VideoGames.FindAsync([request.Id], cancellationToken);
+            var videoGame = await dbContext.VideoGames.FindAsync([command.Id], ct);
             if (videoGame is null)
             {
                 return null;
             }
 
-            videoGame.Title = request.Title;
-            videoGame.Genre = request.Genre;
-            videoGame.ReleaseYear = request.ReleaseYear;
+            videoGame.Title = command.Title;
+            videoGame.Genre = command.Genre;
+            videoGame.ReleaseYear = command.ReleaseYear;
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(ct);
             return new Response(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
         }
     }
 
-    public class EndPoint : ICarterModule
+    // 案3
+    public static async Task<IResult> Endpoint(ISender sender, int id, Command command, CancellationToken ct)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapPut("api/games/{id:int}", async (ISender sender, Command command, int id, CancellationToken cancellationToken) =>
-            {
-                var updatedGame = await sender.Send(command with { Id = id }, cancellationToken);
-                return updatedGame is not null ? Results.Ok(updatedGame)
-                    : Results.NotFound($"Video game with id {id} not found.");
-            });
-        }
+        var updatedGame = await sender.Send(command with { Id = id }, ct);
+        return updatedGame is not null
+            ? Results.Ok(updatedGame)
+            : Results.NotFound($"Video game with id {id} not found.");
     }
+
+    // 案4
+    internal static void UpdateGameEndpoint(this IEndpointRouteBuilder app)
+    {
+        app.MapPut("/{id:int}", async (ISender sender, Command command, int id, CancellationToken ct) =>
+        {
+            var updatedGame = await sender.Send(command with { Id = id }, ct);
+            return updatedGame is not null
+                ? Results.Ok(updatedGame)
+                : Results.NotFound($"Video game with id {id} not found.");
+        });
+    }
+
+    //// 案2
+    //public class EndPoint : ICarterModule
+    //{
+    //    public void AddRoutes(IEndpointRouteBuilder app)
+    //    {
+    //        app.MapPut("api/games/{id:int}", async (ISender sender, Command command, int id, CancellationToken ct) =>
+    //        {
+    //            var updatedGame = await sender.Send(command with { Id = id }, ct);
+    //            return updatedGame is not null ? Results.Ok(updatedGame)
+    //                : Results.NotFound($"Video game with id {id} not found.");
+    //        });
+    //    }
+    //}
 }
 
+// 案1
 //[ApiController]
 //[Route("api/games")]
 //public class UpdateGameController(ISender sender) : ControllerBase
