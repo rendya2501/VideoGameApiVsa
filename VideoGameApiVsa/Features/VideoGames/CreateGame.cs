@@ -48,7 +48,7 @@ public static class CreateGame
         var command = new Command(request.Title, request.Genre, request.ReleaseYear);
         var result = await sender.Send(command, ct);
         return Results.CreatedAtRoute(
-            routeName: "GetGameById",
+            routeName: VideoGameRouteNames.GetById,
             routeValues: new { id = result.Id },
             value: result);
     }
