@@ -14,8 +14,8 @@ public static class GetAllGames
     {
         public async Task<IEnumerable<GetAllGamesResponse>> Handle(GetAllGamesQuery query, CancellationToken ct)
         {
-            var videoGamses = await dbContext.VideoGames.ToListAsync(ct);
-            return videoGamses.Select(vg => new GetAllGamesResponse(vg.Id, vg.Title, vg.Genre, vg.ReleaseYear));
+            var videoGames = await dbContext.VideoGames.ToListAsync(ct);
+            return videoGames.Select(vg => new GetAllGamesResponse(vg.Id, vg.Title, vg.Genre, vg.ReleaseYear));
         }
     }
 
