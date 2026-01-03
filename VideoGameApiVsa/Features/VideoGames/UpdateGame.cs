@@ -60,7 +60,7 @@ public static class UpdateGame
     public static async Task<IResult> Endpoint(ISender sender, int id, UpdateGameRequest request, CancellationToken ct)
     {
         var command = new UpdateGameCommand(id, request.Title, request.Genre, request.ReleaseYear);
-        var result = await sender.Send(command with { Id = id }, ct);
+        var result = await sender.Send(command , ct);
 
         if (result is null)
             return Results.NotFound($"Video game with id {id} not found.");
