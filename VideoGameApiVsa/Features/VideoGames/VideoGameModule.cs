@@ -17,14 +17,14 @@ public sealed class VideoGamesModule : ICarterModule
             .WithName(VideoGameRouteNames.GetAll)
             //.WithSummary("Get all video games")
             .WithDescription("Retrieves a list of all video games in the database")
-            .Produces<IEnumerable<GetAllGames.Response>>(StatusCodes.Status200OK);
+            .Produces<IEnumerable<GetAllGames.GetAllGamesResponse>>(StatusCodes.Status200OK);
 
         // GetByID
         group.MapGet("/{id:int}", GetGameById.Endpoint)
             .WithName(VideoGameRouteNames.GetById)
             //.WithSummary("Get a video game by ID")
             .WithDescription("Retrieves a specific video game by its ID")
-            .Produces<GetGameById.Response>(StatusCodes.Status200OK)
+            .Produces<GetGameById.GetGameByIdResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
         // Create
@@ -32,8 +32,8 @@ public sealed class VideoGamesModule : ICarterModule
             .WithName(VideoGameRouteNames.Create)
             //.WithSummary("Create a new video game")
             .WithDescription("Creates a new video game entry in the database")
-            .Produces<CreateGame.Response>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
+            .Produces<CreateGame.CreateGameResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
         // Update
@@ -41,9 +41,9 @@ public sealed class VideoGamesModule : ICarterModule
             .WithName(VideoGameRouteNames.Update)
             //.WithSummary("Update an existing video game")
             .WithDescription("Updates an existing video game by its ID")
-            .Produces<UpdateGame.Response>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<UpdateGame.UpdateGameResponse>(StatusCodes.Status200OK)
             .ProducesValidationProblem()
+            .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);
 
         // Delete

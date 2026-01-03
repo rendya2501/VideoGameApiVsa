@@ -1,4 +1,5 @@
-using Carter;
+ï»¿using Carter;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using VideoGameApiVsa.Data;
@@ -19,9 +20,11 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 
 builder.Services.AddCarter();
 
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
 var app = builder.Build();
 
-// ‹N“®ƒV[ƒhiInMemory / ÀƒvƒƒoƒCƒ_[ —¼•û‚Å“®ìj
+// èµ·å‹•æ™‚ã‚·ãƒ¼ãƒ‰ï¼ˆInMemory / å®Ÿãƒ—ãƒ­ãƒã‚¤ãƒ€ãƒ¼ ä¸¡æ–¹ã§å‹•ä½œï¼‰
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<VideoGameDbContext>();

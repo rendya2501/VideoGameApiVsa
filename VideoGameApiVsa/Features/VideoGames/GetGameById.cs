@@ -5,13 +5,13 @@ namespace VideoGameApiVsa.Features.VideoGames;
 
 public static class GetGameById
 {
-    public record Query(int Id) : IRequest<Response?>;
+    public record GetGameByIdQuery(int Id) : IRequest<GetGameByIdResponse?>;
 
-    public record Response(int Id, string Title, string Genre, int ReleaseYear);
+    public record GetGameByIdResponse(int Id, string Title, string Genre, int ReleaseYear);
 
-    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Query, Response?>
+    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<GetGameByIdQuery, GetGameByIdResponse?>
     {
-        public async Task<Response?> Handle(Query query, CancellationToken ct)
+        public async Task<GetGameByIdResponse?> Handle(GetGameByIdQuery query, CancellationToken ct)
         {
             var videoGame = await dbContext.VideoGames.FindAsync([query.Id], ct);
             if (videoGame is null)
@@ -19,13 +19,13 @@ public static class GetGameById
                 return null;
             }
 
-            return new Response(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
+            return new GetGameByIdResponse(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
         }
     }
 
     public static async Task<IResult> Endpoint(ISender sender, int id, CancellationToken ct)
     {
-        var result = await sender.Send(new Query(id), ct);
+        var result = await sender.Send(new GetGameByIdQuery(id), ct);
 
         if (result is null)
             return Results.NotFound($"Video game with id {id} not found.");

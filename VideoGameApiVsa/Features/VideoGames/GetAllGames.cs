@@ -6,22 +6,22 @@ namespace VideoGameApiVsa.Features.VideoGames;
 
 public static class GetAllGames
 {
-    public record Query : IRequest<IEnumerable<Response>>;
+    public record GetAllGamesQuery : IRequest<IEnumerable<GetAllGamesResponse>>;
 
-    public record Response(int Id, string Title, string Genre, int ReleaseYear);
+    public record GetAllGamesResponse(int Id, string Title, string Genre, int ReleaseYear);
 
-    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Query, IEnumerable<Response>>
+    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<GetAllGamesQuery, IEnumerable<GetAllGamesResponse>>
     {
-        public async Task<IEnumerable<Response>> Handle(Query query, CancellationToken ct)
+        public async Task<IEnumerable<GetAllGamesResponse>> Handle(GetAllGamesQuery query, CancellationToken ct)
         {
             var videoGamses = await dbContext.VideoGames.ToListAsync(ct);
-            return videoGamses.Select(vg => new Response(vg.Id, vg.Title, vg.Genre, vg.ReleaseYear));
+            return videoGamses.Select(vg => new GetAllGamesResponse(vg.Id, vg.Title, vg.Genre, vg.ReleaseYear));
         }
     }
 
     public static async Task<IResult> Endpoint(ISender sender, CancellationToken ct)
     {
-        var result = await sender.Send(new Query(), ct);
+        var result = await sender.Send(new GetAllGamesQuery(), ct);
         return Results.Ok(result);
     }
 }

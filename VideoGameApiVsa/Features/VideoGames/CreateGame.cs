@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using VideoGameApiVsa.Data;
 using VideoGameApiVsa.Entities;
 
@@ -12,7 +13,7 @@ public static class CreateGame
     /// <param name="Title"></param>
     /// <param name="Genre"></param>
     /// <param name="ReleaseYear"></param>
-    public record Request(string Title, string Genre, int ReleaseYear);
+    public record CreateGameRequest(string Title, string Genre, int ReleaseYear);
 
     /// <summary>
     /// MediatRコマンド（内部使用のみ）
@@ -20,14 +21,35 @@ public static class CreateGame
     /// <param name="Title"></param>
     /// <param name="Genre"></param>
     /// <param name="ReleaseYear"></param>
-    public record Command(string Title, string Genre, int ReleaseYear) : IRequest<Response>;
+    public record CreateGameCommand(string Title, string Genre, int ReleaseYear) : IRequest<CreateGameResponse>;
 
-    public record Response(int Id, string Title, string Genre, int ReleaseYear);
-
-    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Command, Response>
+    public class Validator : AbstractValidator<CreateGameCommand>
     {
-        public async Task<Response> Handle(Command command, CancellationToken ct)
+        public Validator()
         {
+            RuleFor(x => x.Title)
+                .NotEmpty()// .WithMessage("Title is required.")
+                .MaximumLength(100);// .WithMessage("Length is Max100.");
+            RuleFor(x => x.Genre)
+                .NotEmpty()
+                .MaximumLength(50);
+            RuleFor(x => x.ReleaseYear)
+                .InclusiveBetween(1950, DateTime.Now.Year);
+        }
+    }
+
+    public record CreateGameResponse(int Id, string Title, string Genre, int ReleaseYear);
+
+    public class Handler(VideoGameDbContext dbContext, IValidator<CreateGameCommand> validator) : IRequestHandler<CreateGameCommand, CreateGameResponse>
+    {
+        public async Task<CreateGameResponse> Handle(CreateGameCommand command, CancellationToken ct)
+        {
+            var validationResult = await validator.ValidateAsync(command, ct);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
             var videoGame = new VideoGame
             {
                 Title = command.Title,
@@ -39,13 +61,13 @@ public static class CreateGame
 
             await dbContext.SaveChangesAsync(ct);
 
-            return new Response(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
+            return new CreateGameResponse(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
         }
     }
 
-    public static async Task<IResult> Endpoint(ISender sender, Request request, CancellationToken ct)
+    public static async Task<IResult> Endpoint(ISender sender, CreateGameRequest request, CancellationToken ct)
     {
-        var command = new Command(request.Title, request.Genre, request.ReleaseYear);
+        var command = new CreateGameCommand(request.Title, request.Genre, request.ReleaseYear);
         var result = await sender.Send(command, ct);
         return Results.CreatedAtRoute(
             routeName: VideoGameRouteNames.GetById,

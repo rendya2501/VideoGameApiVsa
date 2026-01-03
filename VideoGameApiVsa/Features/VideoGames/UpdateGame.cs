@@ -11,7 +11,7 @@ public static class UpdateGame
     /// <param name="Title"></param>
     /// <param name="Genre"></param>
     /// <param name="ReleaseYear"></param>
-    public record Request(string Title, string Genre, int ReleaseYear);
+    public record UpdateGameRequest(string Title, string Genre, int ReleaseYear);
 
     /// <summary>
     /// MediatRコマンド（内部使用のみ）
@@ -19,13 +19,13 @@ public static class UpdateGame
     /// <param name="Title"></param>
     /// <param name="Genre"></param>
     /// <param name="ReleaseYear"></param>
-    public record Command(int Id, string Title, string Genre, int ReleaseYear) : IRequest<Response?>;
+    public record UpdateGameCommand(int Id, string Title, string Genre, int ReleaseYear) : IRequest<UpdateGameResponse?>;
 
-    public record Response(int Id, string Title, string Genre, int ReleaseYear);
+    public record UpdateGameResponse(int Id, string Title, string Genre, int ReleaseYear);
 
-    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<Command, Response?>
+    public class Handler(VideoGameDbContext dbContext) : IRequestHandler<UpdateGameCommand, UpdateGameResponse?>
     {
-        public async Task<Response?> Handle(Command command, CancellationToken ct)
+        public async Task<UpdateGameResponse?> Handle(UpdateGameCommand command, CancellationToken ct)
         {
             var videoGame = await dbContext.VideoGames.FindAsync([command.Id], ct);
 
@@ -37,13 +37,13 @@ public static class UpdateGame
             videoGame.ReleaseYear = command.ReleaseYear;
 
             await dbContext.SaveChangesAsync(ct);
-            return new Response(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
+            return new UpdateGameResponse(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
         }
     }
 
-    public static async Task<IResult> Endpoint(ISender sender, int id, Request request, CancellationToken ct)
+    public static async Task<IResult> Endpoint(ISender sender, int id, UpdateGameRequest request, CancellationToken ct)
     {
-        var command = new Command(id, request.Title, request.Genre, request.ReleaseYear);
+        var command = new UpdateGameCommand(id, request.Title, request.Genre, request.ReleaseYear);
         var result = await sender.Send(command with { Id = id }, ct);
 
         if (result is null)
