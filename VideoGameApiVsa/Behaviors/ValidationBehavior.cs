@@ -25,13 +25,13 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
     /// </summary>
     /// <param name="request">実際に送信された Command / Query</param>
     /// <param name="next">次の処理（次の Behavior or 最終的な Handler）</param>
-    /// <param name="cancellationToken">キャンセル用トークン（ほぼ素通し）</param>
+    /// <param name="ct">キャンセル用トークン（ほぼ素通し）</param>
     /// <returns></returns>
     /// <exception cref="ValidationException"></exception>
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         // この Request に対応する Validator が 1 つ以上存在するか？
         if (validators.Any())
