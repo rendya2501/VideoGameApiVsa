@@ -28,12 +28,17 @@ public static class UpdateGame
     {
         public Validator()
         {
+            // タイトルは必須 & 最大100文字
             RuleFor(x => x.Title)
                 .NotEmpty()
                 .MaximumLength(100);
+
+            // ジャンルは必須 & 最大50文字
             RuleFor(x => x.Genre)
                 .NotEmpty()
                 .MaximumLength(50);
+
+            // リリース年は現実的な範囲に制限
             RuleFor(x => x.ReleaseYear)
                 .InclusiveBetween(1950, DateTime.Now.Year);
         }
