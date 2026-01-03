@@ -1,3 +1,9 @@
 <Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="VideoGameApiVsa.Tests/VideoGameApiVsa.Tests.csproj" />
   <Project Path="VideoGameApiVsa/VideoGameApiVsa.csproj" />
 </Solution>
