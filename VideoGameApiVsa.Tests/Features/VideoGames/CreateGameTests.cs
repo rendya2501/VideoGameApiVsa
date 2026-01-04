@@ -59,14 +59,32 @@ public class CreateGameTests
     }
 
     /// <summary>
-    /// 境界値テスト：タイトルちょうど100文字
+    /// タイトルがnullの場合、バリデーションが失敗することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldFail_WhenTitleIsNull()
+    {
+        // Arrange
+        var validator = new CreateGame.Validator();
+        var command = new CreateGame.CreateGameCommand(null!, "Action", 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Title");
+    }
+
+    /// <summary>
+    /// タイトルが100文字の場合、バリデーションが成功することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldPass_WhenTitleIsExactly100Characters()
     {
         // Arrange
         var validator = new CreateGame.Validator();
-        var title = new string('A', 100); // ちょうど100文字
+        var title = new string('A', 100);
         var command = new CreateGame.CreateGameCommand(title, "Action", 2023);
 
         // Act
@@ -77,14 +95,14 @@ public class CreateGameTests
     }
 
     /// <summary>
-    /// タイトルが最大長を超える場合、バリデーションが失敗することを確認するテスト
+    /// タイトルが101文字の場合、バリデーションが失敗することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldFail_WhenTitleExceedsMaxLength()
     {
         // Arrange
         var validator = new CreateGame.Validator();
-        var longTitle = new string('A', 101); // 101文字
+        var longTitle = new string('A', 101);
         var command = new CreateGame.CreateGameCommand(longTitle, "Action", 2023);
 
         // Act
@@ -114,14 +132,50 @@ public class CreateGameTests
     }
 
     /// <summary>
-    /// ジャンルの最大長（50文字）超過テスト
+    /// ジャンルがnullの場合、バリデーションが失敗することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldFail_WhenGenreIsNull()
+    {
+        // Arrange
+        var validator = new CreateGame.Validator();
+        var command = new CreateGame.CreateGameCommand("Test Game", null!, 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Genre");
+    }
+
+    /// <summary>
+    /// ジャンルが50文字の場合、バリデーションが成功することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldPass_WhenGenreIsExactly50Characters()
+    {
+        // Arrange
+        var validator = new CreateGame.Validator();
+        var genre = new string('A', 50);
+        var command = new CreateGame.CreateGameCommand("Test Game", genre, 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// ジャンルが51文字の場合、バリデーションが失敗することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldFail_WhenGenreExceedsMaxLength()
     {
         // Arrange
         var validator = new CreateGame.Validator();
-        var longGenre = new string('A', 51); // 51文字
+        var longGenre = new string('A', 51);
         var command = new CreateGame.CreateGameCommand("Test Game", longGenre, 2023);
 
         // Act
@@ -133,7 +187,7 @@ public class CreateGameTests
     }
 
     /// <summary>
-    /// リリース年が1950年より前の場合、バリデーションが失敗することを確認するテスト
+    /// リリース年が1949年の場合、バリデーションが失敗することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldFail_WhenReleaseYearIsBefore1950()
@@ -151,7 +205,7 @@ public class CreateGameTests
     }
 
     /// <summary>
-    /// 境界値テスト：リリース年が1950年（境界値）
+    /// リリース年が1950年の場合、バリデーションが成功することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldPass_WhenReleaseYearIs1950()
@@ -167,9 +221,8 @@ public class CreateGameTests
         result.IsValid.Should().BeTrue();
     }
 
-
     /// <summary>
-    /// 境界値テスト：リリース年が今年（境界値）
+    /// リリース年が今年の場合、バリデーションが成功することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldPass_WhenReleaseYearIsCurrentYear()
@@ -186,7 +239,7 @@ public class CreateGameTests
     }
 
     /// <summary>
-    /// リリース年が未来の場合、バリデーションが失敗することを確認するテスト
+    /// リリース年が来年の場合、バリデーションが失敗することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldFail_WhenReleaseYearIsInFuture()
@@ -221,4 +274,3 @@ public class CreateGameTests
         result.IsValid.Should().BeTrue();
     }
 }
-

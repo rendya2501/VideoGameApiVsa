@@ -88,7 +88,43 @@ public class UpdateGameTests
     }
 
     /// <summary>
-    /// タイトル最大長超過
+    /// タイトルがnullの場合、バリデーションが失敗することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldFail_WhenTitleIsNull()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var command = new UpdateGame.UpdateGameCommand(1, null!, "Action", 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Title");
+    }
+
+    /// <summary>
+    /// タイトルが100文字の場合、バリデーションが成功することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldPass_WhenTitleIsExactly100Characters()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var title = new string('A', 100);
+        var command = new UpdateGame.UpdateGameCommand(1, title, "Action", 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// タイトルが101文字の場合、バリデーションが失敗することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldFail_WhenTitleExceedsMaxLength()
@@ -107,7 +143,7 @@ public class UpdateGameTests
     }
 
     /// <summary>
-    /// ジャンル空のテスト 
+    /// ジャンルが空の場合、バリデーションが失敗することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldFail_WhenGenreIsEmpty()
@@ -125,7 +161,114 @@ public class UpdateGameTests
     }
 
     /// <summary>
-    /// リリース年が未来
+    /// ジャンルがnullの場合、バリデーションが失敗することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldFail_WhenGenreIsNull()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", null!, 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Genre");
+    }
+
+    /// <summary>
+    /// ジャンルが50文字の場合、バリデーションが成功することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldPass_WhenGenreIsExactly50Characters()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var genre = new string('A', 50);
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", genre, 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// ジャンルが51文字の場合、バリデーションが失敗することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldFail_WhenGenreExceedsMaxLength()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var longGenre = new string('A', 51);
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", longGenre, 2023);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Genre");
+    }
+
+    /// <summary>
+    /// リリース年が1949年の場合、バリデーションが失敗することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldFail_WhenReleaseYearIsBefore1950()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", "Action", 1949);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "ReleaseYear");
+    }
+
+    /// <summary>
+    /// リリース年が1950年の場合、バリデーションが成功することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldPass_WhenReleaseYearIs1950()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", "Action", 1950);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// リリース年が今年の場合、バリデーションが成功することを確認するテスト
+    /// </summary>
+    [Fact]
+    public void Validator_ShouldPass_WhenReleaseYearIsCurrentYear()
+    {
+        // Arrange
+        var validator = new UpdateGame.Validator();
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", "Action", DateTime.Now.Year);
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// リリース年が来年の場合、バリデーションが失敗することを確認するテスト
     /// </summary>
     [Fact]
     public void Validator_ShouldFail_WhenReleaseYearIsInFuture()
@@ -160,4 +303,3 @@ public class UpdateGameTests
         result.IsValid.Should().BeTrue();
     }
 }
-
