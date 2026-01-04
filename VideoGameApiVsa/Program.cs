@@ -115,17 +115,7 @@ try
         var db = scope.ServiceProvider.GetRequiredService<VideoGameDbContext>();
         db.Database.EnsureCreated();
 
-        if (!db.VideoGames.Any())
-        {
-            db.VideoGames.AddRange(
-                new VideoGame { Id = 1, Genre = "Action", Title = "The Legend of Zelda: Breath of the Wild", ReleaseYear = 2017 },
-                new VideoGame { Id = 2, Genre = "RPG", Title = "The Witcher 3: Wild Hunt", ReleaseYear = 2015 },
-                new VideoGame { Id = 3, Genre = "Shooter", Title = "DOOM Eternal", ReleaseYear = 2020 },
-                new VideoGame { Id = 4, Genre = "Adventure", Title = "Red Dead Redemption 2", ReleaseYear = 2018 },
-                new VideoGame { Id = 5, Genre = "Strategy", Title = "Civilization VI", ReleaseYear = 2016 }
-            );
-            db.SaveChanges();
-        }
+        await VideoGameDbContextSeed.SeedAsync(db);
     }
 
     // ===================================================================
