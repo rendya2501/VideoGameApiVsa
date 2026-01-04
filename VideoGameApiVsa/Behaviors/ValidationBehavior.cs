@@ -47,10 +47,12 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
 
             // 1 件でもエラーがあれば Handler を呼ばずに例外を投げる
             if (failures.Count != 0)
+            {
                 throw new ValidationException(failures);
+            }
         }
 
         // 検証を通過した場合のみ、次の処理へ進む（次の Behavior or 実際の Handler）
-        return await next();
+        return await next(ct);
     }
 }

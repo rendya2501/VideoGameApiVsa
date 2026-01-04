@@ -113,7 +113,9 @@ public static class UpdateGame
             var videoGame = await dbContext.VideoGames.FindAsync([command.Id], ct);
 
             if (videoGame is null)
+            {
                 return null;
+            }
 
             videoGame.Title = command.Title;
             videoGame.Genre = command.Genre;
@@ -142,7 +144,9 @@ public static class UpdateGame
         var result = await sender.Send(command , ct);
 
         if (result is null)
+        {
             return Results.NotFound($"Video game with id {id} not found.");
+        }
 
         return Results.Ok(result);
     }

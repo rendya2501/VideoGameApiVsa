@@ -67,8 +67,11 @@ public static class GetGameById
         public async Task<GetGameByIdResponse?> Handle(GetGameByIdQuery query, CancellationToken ct)
         {
             var videoGame = await dbContext.VideoGames.FindAsync([query.Id], ct);
+
             if (videoGame is null)
+            {
                 return null;
+            }
 
             return new GetGameByIdResponse(videoGame.Id, videoGame.Title, videoGame.Genre, videoGame.ReleaseYear);
         }
@@ -89,7 +92,9 @@ public static class GetGameById
         var result = await sender.Send(new GetGameByIdQuery(id), ct);
 
         if (result is null)
+        {
             return Results.NotFound($"Video game with id {id} not found.");
+        }
 
         return Results.Ok(result);
     }
