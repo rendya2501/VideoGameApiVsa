@@ -34,7 +34,7 @@ public static class CreateGame
     /// OpenAPI/Scalarでドキュメント化される公開API契約。
     /// 内部のCommandとは意図的に分離し、API仕様の独立性を保つ。
     /// </remarks>
-    public record CreateGameRequest(string Title, string Genre, int ReleaseYear);
+    public record CreateGameRequest(string Title, string Genre, int ReleaseYear = 1950);
 
     /// <summary>
     /// ゲーム作成コマンド（内部処理用）

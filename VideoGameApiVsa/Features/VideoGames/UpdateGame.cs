@@ -39,7 +39,7 @@ public static class UpdateGame
     /// Idはルートパラメータから取得するため、ボディには含めない。
     /// CreateGameRequestと構造を合わせることで、API仕様の一貫性を保つ。
     /// </remarks>
-    public record UpdateGameRequest(string Title, string Genre, int ReleaseYear);
+    public record UpdateGameRequest(string Title, string Genre, int ReleaseYear = 1950);
 
     /// <summary>
     /// ゲーム更新コマンド（内部処理用）

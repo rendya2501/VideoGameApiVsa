@@ -1,17 +1,10 @@
 ﻿using Carter;
-using FluentValidation;
-using MediatR;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
-using VideoGameApiVsa.Behaviors;
-using VideoGameApiVsa.Data;
-using VideoGameApiVsa.Entities;
+using VideoGameApiVsa.Extensions;
 
 // ===================================================================
-// 1. Serilog の初期設定（ブートストラップロガー）
+// Serilog の初期設定（ブートストラップロガー）
 // ===================================================================
 // この時点では appsettings.json がまだ読み込まれていないため、
 // 最低限のロガーを作成（アプリケーション起動時のエラーもキャッチ可能）
@@ -25,102 +18,23 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // ===================================================================
-    // 2. Serilog の本設定
-    // ===================================================================
-    // appsettings.json の設定を読み込んでロガーを再構成
-    // これ以降のログはすべて appsettings.json の設定に従う
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        // appsettings.json の "Serilog" セクションから設定を読み込み
-        .ReadFrom.Configuration(context.Configuration)
-        // DI コンテナから設定を読み込み（今回は未使用だが拡張性のため）
-        .ReadFrom.Services(services)
-        // LogContext からプロパティを追加（リクエストごとの追加情報に使用）
-        .Enrich.FromLogContext()
-        // マシン名をすべてのログに追加（分散環境で便利）
-        .Enrich.WithMachineName()
-        // スレッドIDをすべてのログに追加（マルチスレッド解析に便利）
-        .Enrich.WithThreadId()
-        // カスタムプロパティを追加（すべてのログに Application = "VideoGameApiVsa" が付く）
-        .Enrich.WithProperty("Application", "VideoGameApiVsa")
-    );
+    // 拡張メソッドでSerilog設定
+    builder.Host.ConfigureSerilog();
 
-    // ===================================================================
-    // 3. サービス登録
-    // ===================================================================
     builder.Services.AddControllers();
-    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
 
-    builder.Services.AddDbContext<VideoGameDbContext>(options =>
-        options.UseInMemoryDatabase("GameDB"));
-
-    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-
-    builder.Services.AddCarter();
-
-    builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
-
-    // ===================================================================
-    // 4. Pipeline Behaviors の登録（実行順序が重要）
-    // ===================================================================
-    // MediatR のパイプライン実行順序:
-    // Request → LoggingBehavior(開始) → ValidationBehavior → Handler → LoggingBehavior(終了) → Response
-
-    // 1番目: LoggingBehavior（すべてのリクエスト/レスポンスを記録）
-    builder.Services.AddTransient(
-        typeof(IPipelineBehavior<,>),
-        typeof(LoggingBehavior<,>)
-    );
-
-    // 2番目: ValidationBehavior（バリデーション実行）
-    builder.Services.AddTransient(
-        typeof(IPipelineBehavior<,>),
-        typeof(ValidationBehavior<,>)
-    );
+    // 拡張メソッドでサービス登録を整理
+    builder.Services.AddDatabaseServices(builder.Configuration);
+    builder.Services.AddApplicationServices();
+    builder.Services.AddValidationServices();
 
     var app = builder.Build();
 
-    // ===================================================================
-    // 5. Serilog の HTTPリクエストロギング
-    // ===================================================================
-    // すべてのHTTPリクエストを自動的にログに記録
-    // このミドルウェアは UseRouting の後、UseEndpoints の前に配置する
-    app.UseSerilogRequestLogging(options =>
-    {
-        // ログメッセージのテンプレートをカスタマイズ
-        // {Elapsed:0.0000} で小数点4桁までのミリ秒表示
-        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms";
+    // ミドルウェアパイプライン（順序が重要）
+    app.UseSerilogRequestLogging();  // HTTPリクエストロギング
+    app.UseGlobalExceptionHandler();    // グローバル例外ハンドリング
 
-        // 追加のコンテキスト情報を記録
-        // これらのプロパティは構造化ログとして記録され、後で検索可能
-        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
-        {
-            // リクエストホスト（例: localhost:5000）
-            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-            // リクエストスキーム（例: https）
-            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-            // ユーザーエージェント（ブラウザ情報など）
-            diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
-            // リモートIPアドレス（クライアントのIP）
-            diagnosticContext.Set("RemoteIP", httpContext.Connection.RemoteIpAddress?.ToString());
-        };
-    });
-
-    // ===================================================================
-    // 6. 起動時シード
-    // ===================================================================
-    using (var scope = app.Services.CreateScope())
-    {
-        var db = scope.ServiceProvider.GetRequiredService<VideoGameDbContext>();
-        db.Database.EnsureCreated();
-
-        await VideoGameDbContextSeed.SeedAsync(db);
-    }
-
-    // ===================================================================
-    // 7. HTTP リクエストパイプラインの設定
-    // ===================================================================
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
@@ -128,167 +42,15 @@ try
     }
 
     app.UseHttpsRedirection();
-
     app.UseAuthorization();
-
     app.MapControllers();
 
-    // ===================================================================
-    // 8. グローバル例外ハンドラ
-    // ===================================================================
-    // ここでキャッチされるのは「どこでも未処理で投げられた例外」
-    app.UseExceptionHandler(errorApp =>
-    {
-        // 例外発生時に実行されるパイプラインを定義
-        errorApp.Run(async context =>
-        {
-            // 現在の HTTP コンテキストから例外情報を取得
-            // IExceptionHandlerFeature は UseExceptionHandler が内部で設定してくれる
-            var exception = context.Features
-                .Get<IExceptionHandlerFeature>()?
-                .Error;
-
-            if (exception == null)
-            {
-                return;
-            }
-
-            // ProblemDetails の共通設定
-            ProblemDetails problemDetails;
-
-            // ===== 1. ValidationException（400 Bad Request） =====
-            if (exception is ValidationException validationException)
-            {
-                Log.Warning(
-                    "Validation failed for {Path}: {ErrorCount} errors",
-                    context.Request.Path,
-                    validationException.Errors.Count());
-
-                // ValidationException が持つ Errors をプロパティ名ごとにグルーピングする
-                var errors = validationException.Errors
-                    // PropertyName（例: "Name", "Price"）ごとにまとめる
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(
-                        g => g.Key,     // プロパティ名
-                        g => g.Select(e => e.ErrorMessage).ToArray()    // エラーメッセージ配列
-                    );
-
-                // ProblemDetails を生成
-                problemDetails = new ProblemDetails
-                {
-                    Type = "https://httpstatuses.com/400",
-                    Title = "Validation failed",
-                    Status = StatusCodes.Status400BadRequest,
-                    Detail = "One or more validation errors occurred.",
-                    Instance = context.Request.Path,
-                };
-
-                // 拡張領域に errors を詰める（RFC 準拠）
-                problemDetails.Extensions["errors"] = errors;
-
-                // HTTP ステータスコードを 400 Bad Request に設定
-                context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            }
-            // ===== 2. DbUpdateException（409 Conflict） =====
-            else if (exception is DbUpdateException dbUpdateException)
-            {
-                Log.Error(
-                    dbUpdateException,
-                    "Database update failed for {Path}",
-                    context.Request.Path);
-
-                problemDetails = new ProblemDetails
-                {
-                    Type = "https://httpstatuses.com/409",
-                    Title = "Database conflict",
-                    Status = StatusCodes.Status409Conflict,
-                    Detail = app.Environment.IsDevelopment()
-                        ? dbUpdateException.Message
-                        : "A database conflict occurred. Please try again.",
-                    Instance = context.Request.Path,
-                };
-
-                context.Response.StatusCode = StatusCodes.Status409Conflict;
-            }
-            // ===== 3. OperationCanceledException（499 Client Closed Request） =====
-            else if (exception is OperationCanceledException)
-            {
-                Log.Information(
-                    "Request was cancelled by client for {Path}",
-                    context.Request.Path);
-
-                // クライアントがリクエストをキャンセルした場合は何も返さない
-                context.Response.StatusCode = 499; // Nginx の非標準ステータスコード
-                return;
-            }
-            // ===== 4. UnauthorizedAccessException（403 Forbidden） =====
-            else if (exception is UnauthorizedAccessException)
-            {
-                Log.Warning(
-                    "Unauthorized access attempt for {Path}",
-                    context.Request.Path);
-
-                problemDetails = new ProblemDetails
-                {
-                    Type = "https://httpstatuses.com/403",
-                    Title = "Forbidden",
-                    Status = StatusCodes.Status403Forbidden,
-                    Detail = "You do not have permission to access this resource.",
-                    Instance = context.Request.Path,
-                };
-
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            }
-            // ===== 5. その他すべての例外（500 Internal Server Error） =====
-            else
-            {
-                Log.Error(
-                    exception,
-                    "Unhandled exception occurred for {Path}",
-                    context.Request.Path);
-
-                problemDetails = new ProblemDetails
-                {
-                    Type = "https://httpstatuses.com/500",
-                    Title = "Internal Server Error",
-                    Status = StatusCodes.Status500InternalServerError,
-                    // 開発環境のみ詳細なエラーメッセージを表示
-                    Detail = app.Environment.IsDevelopment()
-                        ? $"{exception.Message}\n\nStack Trace:\n{exception.StackTrace}"
-                        : "An unexpected error occurred. Please try again later.",
-                    Instance = context.Request.Path,
-                };
-
-                // 開発環境のみ、例外の詳細情報を追加
-                if (app.Environment.IsDevelopment())
-                {
-                    problemDetails.Extensions["exceptionType"] = exception.GetType().Name;
-                    problemDetails.Extensions["innerException"] = exception.InnerException?.Message;
-                }
-
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            }
-
-            // レスポンスの Content-Type を JSON に設定
-            context.Response.ContentType = "application/json";
-            // JSON レスポンスを返却
-            // ===== ProblemDetails の JSON レスポンス例 =====
-            //{
-            //  "type": "https://httpstatuses.com/400",
-            //  "title": "Validation failed",
-            //  "status": 400,
-            //  "detail": "One or more validation errors occurred.",
-            //  "instance": "/games",
-            //  "errors": {
-            //    "Name": ["Name must not be empty"],
-            //    "Price": ["Price must be greater than 0"]
-            //  }
-            // }
-            await context.Response.WriteAsJsonAsync(problemDetails);
-        });
-    });
-
+    // エンドポイント登録
     app.MapCarter();
+
+
+    // シードデータ（開発環境のみ）
+    await app.SeedDatabaseAsync();
 
     Log.Information("Application started successfully");
     app.Run();
