@@ -39,7 +39,7 @@ public static class UpdateGame
     /// Idはルートパラメータから取得するため、ボディには含めない。
     /// CreateGameRequestと構造を合わせることで、API仕様の一貫性を保つ。
     /// </remarks>
-    public record UpdateGameRequest(string Title, string Genre, int ReleaseYear = VideoGameConstants.DefaultReleaseYear);
+    public record UpdateGameRequest(string Title, string Genre, int ReleaseYear = VideoGameConstants.Validation.ReleaseYear.DefaultValue);
 
     /// <summary>
     /// ゲーム更新コマンド（内部処理用）
@@ -80,16 +80,16 @@ public static class UpdateGame
             // タイトルは必須 & 最大文字数
             RuleFor(x => x.Title)
                 .NotEmpty()
-                .MaximumLength(VideoGameConstants.TitleMaxLength);
+                .MaximumLength(VideoGameConstants.Validation.Title.MaxLength);
 
             // ジャンルは必須 & 最大文字数
             RuleFor(x => x.Genre)
                 .NotEmpty()
-                .MaximumLength(VideoGameConstants.GenreMaxLength);
+                .MaximumLength(VideoGameConstants.Validation.Genre.MaxLength);
 
             // リリース年は現実的な範囲に制限
             RuleFor(x => x.ReleaseYear)
-                .InclusiveBetween(VideoGameConstants.MinReleaseYear, DateTime.Now.Year);
+                .InclusiveBetween(VideoGameConstants.Validation.ReleaseYear.MinValue, DateTime.Now.Year);
         }
     }
 

@@ -34,7 +34,7 @@ public static class CreateGame
     /// OpenAPI/Scalarでドキュメント化される公開API契約。
     /// 内部のCommandとは意図的に分離し、API仕様の独立性を保つ。
     /// </remarks>
-    public record CreateGameRequest(string Title, string Genre, int ReleaseYear = VideoGameConstants.DefaultReleaseYear);
+    public record CreateGameRequest(string Title, string Genre, int ReleaseYear = VideoGameConstants.Validation.ReleaseYear.DefaultValue);
 
     /// <summary>
     /// ゲーム作成コマンド（内部処理用）
@@ -76,16 +76,16 @@ public static class CreateGame
             // タイトルは必須 & 最大文字数
             RuleFor(x => x.Title)
                 .NotEmpty()// .WithMessage("Title is required.")
-                .MaximumLength(VideoGameConstants.TitleMaxLength);// .WithMessage("Length is Max100.");
+                .MaximumLength(VideoGameConstants.Validation.Title.MaxLength);// .WithMessage("Length is Max100.");
 
             // ジャンルは必須 & 最大文字数
             RuleFor(x => x.Genre)
                 .NotEmpty()
-                .MaximumLength(VideoGameConstants.GenreMaxLength);
+                .MaximumLength(VideoGameConstants.Validation.Genre.MaxLength);
 
             // リリース年は現実的な範囲に制限
             RuleFor(x => x.ReleaseYear)
-                .InclusiveBetween(VideoGameConstants.MinReleaseYear, DateTime.Now.Year);
+                .InclusiveBetween(VideoGameConstants.Validation.ReleaseYear.MinValue, DateTime.Now.Year);
         }
     }
     /// <summary>
@@ -148,7 +148,7 @@ public static class CreateGame
 
         // 201 Created + Location ヘッダ付きレスポンス
         return Results.CreatedAtRoute(
-            routeName: VideoGameRouteNames.GetById,
+            routeName: VideoGameConstants.RouteNames.GetById,
             routeValues: new { id = result.Id },
             value: result);
     }

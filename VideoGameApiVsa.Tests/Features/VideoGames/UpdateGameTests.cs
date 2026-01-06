@@ -223,7 +223,7 @@ public class UpdateGameTests
     {
         // Arrange
         var validator = new UpdateGame.Validator();
-        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", "Action", VideoGameConstants.MinReleaseYear - 1);
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", "Action", VideoGameConstants.Validation.ReleaseYear.MinValue - 1);
 
         // Act
         var result = validator.Validate(command);
@@ -241,7 +241,7 @@ public class UpdateGameTests
     {
         // Arrange
         var validator = new UpdateGame.Validator();
-        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", "Action", VideoGameConstants.MinReleaseYear);
+        var command = new UpdateGame.UpdateGameCommand(1, "Test Game", "Action", VideoGameConstants.Validation.ReleaseYear.MinValue);
 
         // Act
         var result = validator.Validate(command);

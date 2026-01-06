@@ -194,7 +194,7 @@ public class CreateGameTests
     {
         // Arrange
         var validator = new CreateGame.Validator();
-        var command = new CreateGame.CreateGameCommand("Test Game", "Action", VideoGameConstants.MinReleaseYear - 1);
+        var command = new CreateGame.CreateGameCommand("Test Game", "Action", VideoGameConstants.Validation.ReleaseYear.MinValue - 1);
 
         // Act
         var result = validator.Validate(command);
@@ -212,7 +212,7 @@ public class CreateGameTests
     {
         // Arrange
         var validator = new CreateGame.Validator();
-        var command = new CreateGame.CreateGameCommand("Test Game", "Action", VideoGameConstants.MinReleaseYear);
+        var command = new CreateGame.CreateGameCommand("Test Game", "Action", VideoGameConstants.Validation.ReleaseYear.MinValue);
 
         // Act
         var result = validator.Validate(command);
