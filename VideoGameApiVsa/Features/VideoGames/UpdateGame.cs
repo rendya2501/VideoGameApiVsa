@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using MediatR;
 using VideoGameApiVsa.Data;
-using VideoGameApiVsa.Entities;
 
 namespace VideoGameApiVsa.Features.VideoGames;
 

@@ -1,4 +1,4 @@
-﻿namespace VideoGameApiVsa.Entities;
+﻿namespace VideoGameApiVsa.Features.VideoGames;
 
 /// <summary>
 /// VideoGameに関連する定数定義

@@ -1,4 +1,6 @@
-﻿namespace VideoGameApiVsa.Entities;
+﻿using VideoGameApiVsa.Features.VideoGames;
+
+namespace VideoGameApiVsa.Entities;
 
 public class VideoGame
 {

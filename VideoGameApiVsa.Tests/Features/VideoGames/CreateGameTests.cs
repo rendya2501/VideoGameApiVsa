@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using VideoGameApiVsa.Data;
-using VideoGameApiVsa.Entities;
 using VideoGameApiVsa.Features.VideoGames;
 
 namespace VideoGameApiVsa.Tests.Features.VideoGames;
