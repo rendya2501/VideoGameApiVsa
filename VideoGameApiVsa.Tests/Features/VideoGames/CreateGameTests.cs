@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using VideoGameApiVsa.Data;
+using VideoGameApiVsa.Entities;
 using VideoGameApiVsa.Features.VideoGames;
 
 namespace VideoGameApiVsa.Tests.Features.VideoGames;
@@ -194,7 +195,7 @@ public class CreateGameTests
     {
         // Arrange
         var validator = new CreateGame.Validator();
-        var command = new CreateGame.CreateGameCommand("Test Game", "Action", 1949);
+        var command = new CreateGame.CreateGameCommand("Test Game", "Action", VideoGameConstants.MinReleaseYear - 1);
 
         // Act
         var result = validator.Validate(command);
@@ -212,7 +213,7 @@ public class CreateGameTests
     {
         // Arrange
         var validator = new CreateGame.Validator();
-        var command = new CreateGame.CreateGameCommand("Test Game", "Action", 1950);
+        var command = new CreateGame.CreateGameCommand("Test Game", "Action", VideoGameConstants.MinReleaseYear);
 
         // Act
         var result = validator.Validate(command);

@@ -34,7 +34,7 @@ public static class CreateGame
     /// OpenAPI/Scalarでドキュメント化される公開API契約。
     /// 内部のCommandとは意図的に分離し、API仕様の独立性を保つ。
     /// </remarks>
-    public record CreateGameRequest(string Title, string Genre, int ReleaseYear = 1950);
+    public record CreateGameRequest(string Title, string Genre, int ReleaseYear = VideoGameConstants.DefaultReleaseYear);
 
     /// <summary>
     /// ゲーム作成コマンド（内部処理用）
@@ -73,22 +73,21 @@ public static class CreateGame
     {
         public Validator()
         {
-            // タイトルは必須 & 最大100文字
+            // タイトルは必須 & 最大文字数
             RuleFor(x => x.Title)
                 .NotEmpty()// .WithMessage("Title is required.")
-                .MaximumLength(100);// .WithMessage("Length is Max100.");
+                .MaximumLength(VideoGameConstants.TitleMaxLength);// .WithMessage("Length is Max100.");
 
-            // ジャンルは必須 & 最大50文字
+            // ジャンルは必須 & 最大文字数
             RuleFor(x => x.Genre)
                 .NotEmpty()
-                .MaximumLength(50);
+                .MaximumLength(VideoGameConstants.GenreMaxLength);
 
             // リリース年は現実的な範囲に制限
             RuleFor(x => x.ReleaseYear)
-                .InclusiveBetween(1950, DateTime.Now.Year);
+                .InclusiveBetween(VideoGameConstants.MinReleaseYear, DateTime.Now.Year);
         }
     }
-
     /// <summary>
     /// コマンドハンドラ（ビジネスロジック実行）
     /// </summary>

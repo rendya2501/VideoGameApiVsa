@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using VideoGameApiVsa.Data;
+using VideoGameApiVsa.Entities;
 
 namespace VideoGameApiVsa.Features.VideoGames;
 
@@ -39,7 +40,7 @@ public static class UpdateGame
     /// Idはルートパラメータから取得するため、ボディには含めない。
     /// CreateGameRequestと構造を合わせることで、API仕様の一貫性を保つ。
     /// </remarks>
-    public record UpdateGameRequest(string Title, string Genre, int ReleaseYear = 1950);
+    public record UpdateGameRequest(string Title, string Genre, int ReleaseYear = VideoGameConstants.DefaultReleaseYear);
 
     /// <summary>
     /// ゲーム更新コマンド（内部処理用）
@@ -77,19 +78,19 @@ public static class UpdateGame
     {
         public Validator()
         {
-            // タイトルは必須 & 最大100文字
+            // タイトルは必須 & 最大文字数
             RuleFor(x => x.Title)
                 .NotEmpty()
-                .MaximumLength(100);
+                .MaximumLength(VideoGameConstants.TitleMaxLength);
 
-            // ジャンルは必須 & 最大50文字
+            // ジャンルは必須 & 最大文字数
             RuleFor(x => x.Genre)
                 .NotEmpty()
-                .MaximumLength(50);
+                .MaximumLength(VideoGameConstants.GenreMaxLength);
 
             // リリース年は現実的な範囲に制限
             RuleFor(x => x.ReleaseYear)
-                .InclusiveBetween(1950, DateTime.Now.Year);
+                .InclusiveBetween(VideoGameConstants.MinReleaseYear, DateTime.Now.Year);
         }
     }
 
